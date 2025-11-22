@@ -49,44 +49,51 @@ contract OAquaExecutor is OApp, OAppOptionsType3, AquaApp, IOAppComposer {
         uint256 amountLD
     );
     event StrategyShipped(bytes32 indexed strategyHash, bytes32 payloadId);
+    event StrategyShippedWithOrder(bytes32 indexed strategyHash, bytes orderBytes);
     event SwapExecuted(bytes32 indexed strategyHash, bytes32 orderHash, uint256 amountIn, uint256 amountOut);
     event SwapVmFailed(bytes reason);
     event StrategyDocked(bytes32 indexed strategyHash);
 
-    IERC20 public immutable TOKEN_IN;
-    IERC20 public immutable TOKEN_OUT;
     IAquaSwapVMRouter public immutable ROUTER;
     IStargate public immutable STARGATE_POOL;
 
     mapping(bytes32 => bool) private _strategySaltUsed;
     mapping(bytes32 => bool) private _strategyActive;
+    mapping(address => bool) private _approvedTokens;
 
     constructor(
         address _endpoint,
         address _owner,
         address _aqua,
         address _router,
-        address _stargatePool,
-        address _tokenIn,
-        address _tokenOut
+        address _stargatePool
     ) OApp(_endpoint, _owner) AquaApp(IAquaExternal(_aqua)) Ownable(_owner) {
         if (
             _endpoint == address(0) ||
             _owner == address(0) ||
             _aqua == address(0) ||
             _router == address(0) ||
-            _stargatePool == address(0) ||
-            _tokenIn == address(0) ||
-            _tokenOut == address(0)
+            _stargatePool == address(0)
         ) revert InvalidAddress();
 
         ROUTER = IAquaSwapVMRouter(_router);
         STARGATE_POOL = IStargate(_stargatePool);
-        TOKEN_IN = IERC20(_tokenIn);
-        TOKEN_OUT = IERC20(_tokenOut);
+    }
 
-        TOKEN_IN.forceApprove(_aqua, type(uint256).max);
-        TOKEN_OUT.forceApprove(_aqua, type(uint256).max);
+    function approveToken(address token) external onlyOwner {
+        if (!_approvedTokens[token]) {
+            IERC20(token).forceApprove(address(AQUA), type(uint256).max);
+            _approvedTokens[token] = true;
+        }
+    }
+
+    function approveTokens(address[] calldata tokens) external onlyOwner {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            if (!_approvedTokens[tokens[i]]) {
+                IERC20(tokens[i]).forceApprove(address(AQUA), type(uint256).max);
+                _approvedTokens[tokens[i]] = true;
+            }
+        }
     }
 
     function lzCompose(
@@ -125,8 +132,15 @@ contract OAquaExecutor is OApp, OAppOptionsType3, AquaApp, IOAppComposer {
                 payload.strategyBalances[i] = amountLD;
             }
         }
-        if (payload.tokenIn != address(TOKEN_IN)) revert InvalidToken(payload.tokenIn);
-        if (payload.tokenOut != address(TOKEN_OUT)) revert InvalidToken(payload.tokenOut);
+
+        // Auto-approve all tokens in the strategy if not already approved
+        for (uint256 i = 0; i < payload.strategyTokens.length; ++i) {
+            address token = payload.strategyTokens[i];
+            if (!_approvedTokens[token]) {
+                IERC20(token).forceApprove(address(AQUA), type(uint256).max);
+                _approvedTokens[token] = true;
+            }
+        }
 
         bytes32 payloadId = SwapPayloadCodec.id(payload);
         emit ComposeReceived(_guid, origin, srcEid, payloadId, amountLD);
@@ -181,6 +195,9 @@ contract OAquaExecutor is OApp, OAppOptionsType3, AquaApp, IOAppComposer {
 
         strategyHash = abi.decode(result, (bytes32));
         _strategyActive[strategyHash] = true;
+
+        // Emit the order bytes so they can be retrieved for trading
+        emit StrategyShippedWithOrder(strategyHash, abi.encode(order));
     }
 
     function _executeSwap(
@@ -221,7 +238,7 @@ contract OAquaExecutor is OApp, OAppOptionsType3, AquaApp, IOAppComposer {
         }
 
         if (payload.recipient != address(this) && amountOutReceived > 0) {
-            TOKEN_OUT.safeTransfer(payload.recipient, amountOutReceived);
+            IERC20(payload.tokenOut).safeTransfer(payload.recipient, amountOutReceived);
         }
     }
 
@@ -250,20 +267,27 @@ contract OAquaExecutor is OApp, OAppOptionsType3, AquaApp, IOAppComposer {
 
     function _ensureBalances(SwapPayloadCodec.SwapPayload memory payload) private view {
         bool satisfied;
+
+        // Check all strategy tokens have sufficient balance
         for (uint256 i = 0; i < payload.strategyTokens.length; ++i) {
-            if (payload.strategyTokens[i] == payload.tokenIn) {
-                if (payload.strategyBalances[i] < payload.amountLD) {
-                    revert InsufficientBalance(payload.tokenIn, payload.amountLD, payload.strategyBalances[i]);
+            address token = payload.strategyTokens[i];
+            uint256 requiredAmount = payload.strategyBalances[i];
+
+            if (token == payload.tokenIn) {
+                if (requiredAmount < payload.amountLD) {
+                    revert InsufficientBalance(payload.tokenIn, payload.amountLD, requiredAmount);
                 }
                 satisfied = true;
             }
-        }
-        if (!satisfied) revert MissingStrategyToken(payload.tokenIn);
 
-        uint256 balance = TOKEN_IN.balanceOf(address(this));
-        if (balance < payload.amountLD) {
-            revert InsufficientBalance(payload.tokenIn, payload.amountLD, balance);
+            // Check contract has enough of this token
+            uint256 balance = IERC20(token).balanceOf(address(this));
+            if (balance < requiredAmount) {
+                revert InsufficientBalance(token, requiredAmount, balance);
+            }
         }
+
+        if (!satisfied) revert MissingStrategyToken(payload.tokenIn);
     }
 
     function _lzReceive(Origin calldata, bytes32, bytes calldata, address, bytes calldata) internal virtual override {
