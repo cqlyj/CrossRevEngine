@@ -14,6 +14,7 @@ import { HardhatUserConfig, HttpNetworkAccountsUserConfig } from 'hardhat/types'
 import { EndpointId } from '@layerzerolabs/lz-definitions'
 
 import './tasks/sendString'
+import './tasks/sendSwap'
 
 // Set your preferred authentication method
 //
@@ -43,12 +44,33 @@ const config: HardhatUserConfig = {
     solidity: {
         compilers: [
             {
+                version: '0.8.30',
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                    evmVersion: 'cancun',
+                },
+            },
+            {
+                version: '0.8.24',
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                    evmVersion: 'cancun',
+                },
+            },
+            {
                 version: '0.8.22',
                 settings: {
                     optimizer: {
                         enabled: true,
                         runs: 200,
                     },
+                    evmVersion: 'cancun',
                 },
             },
         ],
@@ -58,25 +80,42 @@ const config: HardhatUserConfig = {
             eid: EndpointId.ARBSEP_V2_TESTNET,
             url: process.env.RPC_URL_ARB_SEPOLIA || 'https://arbitrum-sepolia.gateway.tenderly.co',
             accounts,
-        },
+            hardfork: 'cancun',
+            companionNetworks: {
+                base: 'base-sepolia',
+            },
+        } as any,
         'arbitrum-mainnet': {
             eid: EndpointId.ARBITRUM_V2_MAINNET,
             url: process.env.RPC_URL_ARBITRUM || 'https://arb1.arbitrum.io/rpc',
             accounts,
-        },
+            hardfork: 'cancun',
+            companionNetworks: {
+                base: 'base-mainnet',
+            },
+        } as any,
         'base-sepolia': {
             eid: EndpointId.BASESEP_V2_TESTNET,
             url: process.env.RPC_URL_BASE_SEPOLIA || 'https://base-sepolia.gateway.tenderly.co',
             accounts,
-        },
+            hardfork: 'cancun',
+            companionNetworks: {
+                arbitrum: 'arbitrum-sepolia',
+            },
+        } as any,
         'base-mainnet': {
             eid: EndpointId.BASE_V2_MAINNET,
             url: process.env.RPC_URL_BASE || 'https://mainnet.base.org',
             accounts,
-        },
+            hardfork: 'cancun',
+            companionNetworks: {
+                arbitrum: 'arbitrum-mainnet',
+            },
+        } as any,
         hardhat: {
             // Need this for testing because TestHelperOz5.sol is exceeding the compiled contract size limit
             allowUnlimitedContractSize: true,
+            hardfork: 'cancun',
         },
     },
     namedAccounts: {
