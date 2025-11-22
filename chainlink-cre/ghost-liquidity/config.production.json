@@ -1,0 +1,9 @@
+{
+  "schedule": "0 */5 * * * *",
+  "mockEventsApiUrl": "https://your-production-api.com/events",
+  "geminiModel": "gemini-2.0-flash-exp",
+  "baseChain": "ethereum-mainnet",
+  "targetChain": "arbitrum-mainnet",
+  "oappExecutorAddress": "0x0000000000000000000000000000000000000000"
+}
+

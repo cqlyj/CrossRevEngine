@@ -1,0 +1,7 @@
+{
+  "schedule": "*/20 * * * * *",
+  "aggregatedFeedUrl": "http://localhost:8000/aggregated-feed.json",
+  "baseChain": "ethereum-testnet-sepolia",
+  "targetChain": "arbitrum-testnet-sepolia",
+  "oappExecutorAddress": "0x0000000000000000000000000000000000000000"
+}
