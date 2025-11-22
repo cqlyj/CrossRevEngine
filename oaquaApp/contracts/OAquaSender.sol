@@ -36,6 +36,8 @@ contract OAquaSender is OApp, OAppOptionsType3 {
     IStargate public immutable STARGATE_POOL;
     address public immutable DESTINATION_EXECUTOR;
     uint32 public immutable DESTINATION_EID;
+    address public immutable DESTINATION_TOKEN_IN;
+    address public immutable DESTINATION_TOKEN_OUT;
 
     constructor(
         address _endpoint,
@@ -43,14 +45,18 @@ contract OAquaSender is OApp, OAppOptionsType3 {
         address _tokenIn,
         address _stargatePool,
         address _destinationExecutor,
-        uint32 _destinationEid
+        uint32 _destinationEid,
+        address _destinationTokenIn,
+        address _destinationTokenOut
     ) OApp(_endpoint, _owner) Ownable(_owner) {
         if (
             _endpoint == address(0) ||
             _owner == address(0) ||
             _tokenIn == address(0) ||
             _stargatePool == address(0) ||
-            _destinationExecutor == address(0)
+            _destinationExecutor == address(0) ||
+            _destinationTokenIn == address(0) ||
+            _destinationTokenOut == address(0)
         ) revert InvalidAddress();
         if (_destinationEid == 0) revert InvalidDestination(_destinationExecutor);
 
@@ -58,6 +64,8 @@ contract OAquaSender is OApp, OAppOptionsType3 {
         STARGATE_POOL = IStargate(_stargatePool);
         DESTINATION_EXECUTOR = _destinationExecutor;
         DESTINATION_EID = _destinationEid;
+        DESTINATION_TOKEN_IN = _destinationTokenIn;
+        DESTINATION_TOKEN_OUT = _destinationTokenOut;
 
         TOKEN_IN.forceApprove(_stargatePool, type(uint256).max);
     }
@@ -79,30 +87,23 @@ contract OAquaSender is OApp, OAppOptionsType3 {
         bytes calldata extraOptions,
         uint256 minAmountLD
     ) external payable returns (bytes32 guid) {
-        SwapPayloadCodec.SwapPayload memory adjustedPayload = payload;
-
-        // Update payload to match the actual amount landing on destination
-        if (minAmountLD > 0) {
-            adjustedPayload.amountLD = minAmountLD;
-            if (adjustedPayload.strategyBalances.length > 0) {
-                adjustedPayload.strategyBalances[0] = minAmountLD;
-            }
-        }
+        // Payload should already have the expected received amount set by the caller
+        // We don't modify it here - the caller is responsible for setting amountLD
+        // to the quoted amountReceivedLD from Stargate
 
         (SendParam memory sendParam, ) = _prepareSendParam(
-            adjustedPayload,
-            payload.amountLD, // ORIGINAL amount to send/debit
+            payload,
+            payload.amountLD, // Amount to bridge
             extraOptions,
-            minAmountLD
+            minAmountLD // Minimum acceptable amount (slippage protection)
         );
 
         MessagingFee memory feeQuote = STARGATE_POOL.quoteSend(sendParam, false);
         if (msg.value < feeQuote.nativeFee) revert InsufficientMsgValue(feeQuote.nativeFee, msg.value);
 
-        // Transfer the *original* amount from user (sender covers fees)
+        // Transfer the amount from user
         TOKEN_IN.safeTransferFrom(msg.sender, address(this), payload.amountLD);
 
-        // DEBUG: Uncommented send, but using empty options to debug
         (MessagingReceipt memory receipt, ) = STARGATE_POOL.send{ value: feeQuote.nativeFee }(
             sendParam,
             feeQuote,
@@ -116,8 +117,8 @@ contract OAquaSender is OApp, OAppOptionsType3 {
             require(success, "Excess refund failed");
         }
 
-        bytes32 payloadId = SwapPayloadCodec.id(adjustedPayload);
-        emit SwapDispatched(receipt.guid, msg.sender, adjustedPayload.amountLD, payloadId, DESTINATION_EID);
+        bytes32 payloadId = SwapPayloadCodec.id(payload);
+        emit SwapDispatched(receipt.guid, msg.sender, payload.amountLD, payloadId, DESTINATION_EID);
 
         return receipt.guid;
     }
@@ -128,16 +129,18 @@ contract OAquaSender is OApp, OAppOptionsType3 {
         bytes calldata extraOptions,
         uint256 minAmountLD
     ) internal view returns (SendParam memory sendParam, uint256 guaranteedAmountLD) {
-        if (payload.tokenIn != address(TOKEN_IN)) revert InvalidToken(payload.tokenIn);
+        // Payload comes in with DESTINATION addresses, but we need to validate against SOURCE token
+        // that we're actually bridging from this chain
+        if (payload.tokenIn != DESTINATION_TOKEN_IN) revert InvalidToken(payload.tokenIn);
         if (payload.maker != DESTINATION_EXECUTOR) revert InvalidDestination(payload.maker);
 
+        // Payload is already correct with destination addresses, so we just encode it as-is
         sendParam = SendParam({
             dstEid: DESTINATION_EID,
             to: OFTMsgCodec.addressToBytes32(DESTINATION_EXECUTOR),
             amountLD: amountToSendLD,
             minAmountLD: minAmountLD,
             extraOptions: extraOptions,
-            // extraOptions: bytes(""), // DEBUG: FORCE EMPTY OPTIONS
             composeMsg: SwapPayloadCodec.encode(payload),
             oftCmd: bytes("")
         });
