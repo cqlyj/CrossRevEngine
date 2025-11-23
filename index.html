@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CrossRevEngine | Ghost Liquidity Dashboard</title>
+    <style>
+      :root {
+        --neon-blue: #00f3ff;
+        --neon-purple: #bc13fe;
+        --dark-bg: #0a0a0f;
+        --panel-bg: rgba(20, 20, 30, 0.8);
+        --text-color: #e0e0e0;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--dark-bg);
+        color: var(--text-color);
+        font-family: "Courier New", Courier, monospace;
+        overflow: hidden;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* CRT Scanline Effect */
+      body::before {
+        content: " ";
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(
+            rgba(18, 16, 16, 0) 50%,
+            rgba(0, 0, 0, 0.25) 50%
+          ),
+          linear-gradient(
+            90deg,
+            rgba(255, 0, 0, 0.06),
+            rgba(0, 255, 0, 0.02),
+            rgba(0, 0, 255, 0.06)
+          );
+        z-index: 2;
+        background-size: 100% 2px, 3px 100%;
+        pointer-events: none;
+      }
+
+      header {
+        padding: 20px;
+        border-bottom: 1px solid var(--neon-blue);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 10;
+      }
+
+      h1 {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        color: var(--neon-blue);
+        text-shadow: 0 0 10px var(--neon-blue);
+      }
+
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        background-color: #333;
+        border-radius: 50%;
+        box-shadow: 0 0 5px #333;
+        transition: all 0.3s ease;
+      }
+
+      .dot.active {
+        background-color: #0f0;
+        box-shadow: 0 0 10px #0f0;
+      }
+
+      .main-container {
+        display: flex;
+        flex: 1;
+        padding: 20px;
+        gap: 20px;
+        position: relative;
+      }
+
+      /* Left Control Panel */
+      .control-panel {
+        width: 300px;
+        background: var(--panel-bg);
+        border: 1px solid #333;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        z-index: 10;
+        position: relative;
+      }
+
+      .strategy-info {
+        background: rgba(0, 243, 255, 0.05);
+        border: 1px solid var(--neon-blue);
+        padding: 20px;
+        border-radius: 5px;
+        display: none;
+        animation: fadeIn 0.5s ease;
+      }
+
+      .strategy-info.active {
+        display: block;
+      }
+
+      .strategy-info h3 {
+        color: var(--neon-blue);
+        margin: 0 0 15px 0;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .strategy-info p {
+        margin: 8px 0;
+        font-size: 12px;
+        line-height: 1.6;
+        color: #ccc;
+      }
+
+      .strategy-info .highlight {
+        color: var(--neon-purple);
+        font-weight: bold;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .btn {
+        background: transparent;
+        border: 1px solid var(--neon-blue);
+        color: var(--neon-blue);
+        padding: 15px;
+        font-family: inherit;
+        font-size: 16px;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn:hover {
+        background: rgba(0, 243, 255, 0.1);
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+      }
+
+      .btn:disabled {
+        border-color: #555;
+        color: #555;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .btn.active {
+        background: var(--neon-blue);
+        color: #000;
+        box-shadow: 0 0 20px var(--neon-blue);
+      }
+
+      /* Visualization Area */
+      .vis-area {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid #333;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Floating Messages */
+      .floating-message {
+        position: absolute;
+        background: rgba(0, 20, 40, 0.9);
+        border: 1px solid var(--neon-purple);
+        padding: 10px;
+        color: var(--neon-purple);
+        font-size: 12px;
+        border-radius: 4px;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: floatUp 4s forwards;
+        max-width: 250px;
+        box-shadow: 0 0 10px rgba(188, 19, 254, 0.2);
+      }
+
+      @keyframes floatUp {
+        0% {
+          opacity: 0;
+          transform: translateY(20px) scale(0.9);
+        }
+        10% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        90% {
+          opacity: 1;
+          transform: translateY(-100px) scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-120px) scale(0.9);
+        }
+      }
+
+      /* CRE Animation Container */
+      .cre-terminal {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 80%;
+        background: #000;
+        border: 1px solid var(--neon-blue);
+        padding: 20px;
+        font-family: monospace;
+        overflow-y: auto;
+        display: none; /* Hidden by default */
+        box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+      }
+
+      .cre-terminal.active {
+        display: block;
+      }
+
+      .log-line {
+        margin-bottom: 5px;
+        border-bottom: 1px solid #111;
+        padding-bottom: 2px;
+      }
+
+      .log-time {
+        color: #666;
+        margin-right: 10px;
+      }
+      .log-info {
+        color: var(--text-color);
+      }
+      .log-success {
+        color: #0f0;
+      }
+      .log-warn {
+        color: #ff0;
+      }
+      .log-error {
+        color: #f00;
+      }
+
+      /* Pulse Animation for Active Status */
+      @keyframes pulse {
+        0% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.5;
+        }
+      }
+
+      .processing {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        color: var(--neon-blue);
+        text-transform: uppercase;
+        animation: pulse 1s infinite;
+        display: none;
+      }
+
+      /* Strategy Visualization */
+      .strategy-view {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 30;
+      }
+
+      .strategy-view.active {
+        display: flex;
+      }
+
+      .strategy-card {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 243, 255, 0.05),
+          rgba(188, 19, 254, 0.05)
+        );
+        border: 2px solid var(--neon-blue);
+        border-radius: 10px;
+        padding: 40px;
+        max-width: 600px;
+        text-align: center;
+        box-shadow: 0 0 50px rgba(0, 243, 255, 0.3);
+        animation: slideIn 0.5s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .strategy-title {
+        font-size: 28px;
+        color: var(--neon-blue);
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-bottom: 30px;
+        text-shadow: 0 0 10px var(--neon-blue);
+      }
+
+      .strategy-detail {
+        font-size: 16px;
+        margin: 15px 0;
+        color: var(--text-color);
+      }
+
+      .strategy-detail strong {
+        color: var(--neon-purple);
+      }
+
+      .lz-link {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 15px 40px;
+        background: var(--neon-blue);
+        color: #000;
+        text-decoration: none;
+        font-weight: bold;
+        text-transform: uppercase;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+      }
+
+      .lz-link:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px var(--neon-blue);
+      }
+
+      .strategy-emoji {
+        font-size: 48px;
+        margin-bottom: 20px;
+      }
+      /* Market View (Post-Deployment) */
+      .market-view {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+        height: 100%;
+        padding: 20px;
+      }
+
+      .market-view.active {
+        display: flex;
+      }
+
+      .asset-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .asset-card {
+        background: rgba(20, 30, 40, 0.8);
+        border: 1px solid var(--neon-blue);
+        padding: 15px;
+        text-align: center;
+        border-radius: 8px;
+      }
+
+      .asset-symbol {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--neon-blue);
+        margin-bottom: 5px;
+      }
+
+      .asset-balance {
+        font-size: 18px;
+        color: #fff;
+      }
+
+      .asset-multiplier {
+        font-size: 12px;
+        color: var(--neon-purple);
+        margin-top: 5px;
+      }
+
+      /* Close Button for Strategy Popup */
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: transparent;
+        border: none;
+        color: var(--neon-blue);
+        font-size: 24px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .close-btn:hover {
+        transform: scale(1.2);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div style="display: flex; align-items: center; gap: 20px">
+        <div
+          style="font-size: 32px; animation: floatGhost 3s ease-in-out infinite"
+        >
+          👻
+        </div>
+        <div>
+          <h1 style="font-size: 24px; margin-bottom: 5px">CrossRevEngine</h1>
+          <div
+            style="
+              font-size: 12px;
+              color: var(--neon-blue);
+              letter-spacing: 1px;
+            "
+          >
+            TELEPORTING MARKET-MAKING STRATEGIES
+          </div>
+        </div>
+      </div>
+      <div class="status-indicator">
+        <span>SYSTEM STATUS</span>
+        <div id="sys-dot" class="dot"></div>
+      </div>
+    </header>
+
+    <style>
+      @keyframes floatGhost {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+    </style>
+
+    <div class="main-container">
+      <div class="control-panel">
+        <div id="initial-controls">
+          <button id="btn-something" class="btn">1. somETHing happens</button>
+          <button id="btn-cre" class="btn" disabled>2. Set Up CRE</button>
+
+          <div style="margin-top: auto; font-size: 10px; color: #555">
+            > WAITING FOR INPUT...
+          </div>
+        </div>
+
+        <div class="strategy-info" id="strategy-info">
+          <h3>🎯 Target Strategy</h3>
+          <p><span class="highlight">Type:</span> 3x Asset Efficiency</p>
+          <p>
+            <span class="highlight">Logic:</span> 3 Assets in LP Simultaneously
+          </p>
+          <p><span class="highlight">Assets:</span> USDT / USDC / DAI</p>
+          <p><span class="highlight">Input:</span> USDT (Primary)</p>
+          <p><span class="highlight">Chain:</span> Arbitrum &rarr; Base</p>
+          <p style="margin-top: 15px; color: #888; font-size: 14px">
+            AI teleports liquidity into a 3-asset ephemeral pool. The same
+            capital backs all 3 positions simultaneously via virtual accounting.
+          </p>
+        </div>
+
+        <button id="btn-swap" class="btn" style="display: none">
+          Execute Swap
+        </button>
+      </div>
+
+      <div class="vis-area" id="vis-area">
+        <div class="processing" id="processing-indicator">
+          PROCESSING CRISIS DATA...
+        </div>
+        <div class="cre-terminal" id="cre-terminal"></div>
+
+        <!-- Strategy Visualization Popup -->
+        <div class="strategy-view" id="strategy-view">
+          <div class="strategy-card" style="position: relative">
+            <button class="close-btn" id="close-popup">×</button>
+            <div class="strategy-emoji">👻</div>
+            <div class="strategy-title" style="font-size: 32px">
+              Ghost Strategy Deployed
+            </div>
+            <div class="strategy-detail" style="font-size: 20px">
+              <strong>Type:</strong>
+              <span id="strategy-type">Schrödinger (3-Asset)</span>
+            </div>
+            <div class="strategy-detail" style="font-size: 20px">
+              <strong>Liquidity:</strong>
+              <span id="strategy-amount">30,000 Virtual Units</span>
+            </div>
+            <div class="strategy-detail" style="font-size: 20px">
+              <strong>Assets:</strong> <span>USDC • USDT • DAI</span>
+            </div>
+            <div class="strategy-detail" style="font-size: 20px">
+              <strong>Target Chain:</strong> <span>Base Mainnet</span>
+            </div>
+            <div class="strategy-detail">
+              <strong>Status:</strong>
+              <span style="color: #0f0">✓ Teleported via LayerZero V2</span>
+            </div>
+            <a href="#" id="lz-scan-link" class="lz-link" target="_blank">
+              View on LayerZero Scan
+            </a>
+          </div>
+        </div>
+
+        <!-- Market View -->
+        <div class="market-view" id="market-view">
+          <h2 style="color: var(--neon-blue); margin-top: 0">
+            GHOST MARKET LIVE
+          </h2>
+          <div class="asset-grid">
+            <div class="asset-card">
+              <div class="asset-symbol">USDC</div>
+              <div class="asset-balance">10,000</div>
+              <div class="asset-multiplier">Shared Liquidity</div>
+            </div>
+            <div class="asset-card">
+              <div class="asset-symbol">USDT</div>
+              <div class="asset-balance">10,000</div>
+              <div class="asset-multiplier">Shared Liquidity</div>
+            </div>
+            <div class="asset-card">
+              <div class="asset-symbol">DAI</div>
+              <div class="asset-balance">10,000</div>
+              <div class="asset-multiplier">Shared Liquidity</div>
+            </div>
+          </div>
+          <div
+            style="
+              flex: 1;
+              border: 1px solid #333;
+              background: #000;
+              padding: 10px;
+              font-family: monospace;
+              overflow-y: auto;
+              white-space: pre-wrap;
+            "
+            id="swap-logs"
+          >
+            <div style="color: #666">> Market Ready. Waiting for swaps...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const btnSomething = document.getElementById("btn-something");
+      const btnCre = document.getElementById("btn-cre");
+      const btnSwap = document.getElementById("btn-swap");
+      const visArea = document.getElementById("vis-area");
+      const terminal = document.getElementById("cre-terminal");
+      const sysDot = document.getElementById("sys-dot");
+      const processing = document.getElementById("processing-indicator");
+      const strategyView = document.getElementById("strategy-view");
+      const lzScanLink = document.getElementById("lz-scan-link");
+      const strategyInfo = document.getElementById("strategy-info");
+      const initialControls = document.getElementById("initial-controls");
+      const marketView = document.getElementById("market-view");
+      const closePopupBtn = document.getElementById("close-popup");
+      const swapLogs = document.getElementById("swap-logs");
+
+      let mockInterval;
+
+      // Helper to add log to terminal
+      function addLog(text, type = "info", targetElement = terminal) {
+        const line = document.createElement("div");
+        line.className = "log-line";
+        const time = new Date().toLocaleTimeString();
+        let colorClass = "log-info";
+        if (type === "success") colorClass = "log-success";
+        if (type === "warn") colorClass = "log-warn";
+        if (type === "error") colorClass = "log-error";
+
+        line.innerHTML = `<span class="log-time">[${time}]</span><span class="${colorClass}">${text}</span>`;
+        targetElement.appendChild(line);
+        targetElement.scrollTop = targetElement.scrollHeight;
+      }
+
+      // Helper to create floating message
+      function spawnFloatingMessage(data) {
+        const msg = document.createElement("div");
+        msg.className = "floating-message";
+
+        // Random position in corner
+        const randomX = Math.random() * 300;
+        const randomY = Math.random() * 300 + 100;
+        msg.style.left = randomX + "px";
+        msg.style.top = randomY + "px";
+
+        // Content based on type
+        if (data.type === "twitter") {
+          msg.innerHTML = `🐦 <b>@${data.handle}</b><br>${data.text.substring(
+            0,
+            50
+          )}...`;
+          msg.style.borderColor = "#1da1f2";
+          msg.style.color = "#1da1f2";
+        } else if (data.type === "onchain") {
+          msg.innerHTML = `⛓️ <b>ALERT</b><br>Pool: ${data.pool}<br>Drain: $${data.amount}`;
+          msg.style.borderColor = "#ff0000";
+          msg.style.color = "#ff0000";
+        } else {
+          msg.innerHTML = `📊 <b>MARKET</b><br>Var: ${data.var}<br>Val: ${data.val}`;
+        }
+
+        visArea.appendChild(msg);
+
+        // Remove after animation
+        setTimeout(() => {
+          msg.remove();
+        }, 4000);
+      }
+
+      // 1. Button: somETHing happens
+      btnSomething.addEventListener("click", async () => {
+        btnSomething.classList.add("active");
+        btnSomething.textContent = "1. MOCK SERVER RUNNING";
+
+        try {
+          // Call backend to start mock server
+          const res = await fetch("/start-mock");
+          const data = await res.json();
+          console.log("Mock server started:", data);
+
+          sysDot.classList.add("active");
+
+          // Start fetching mock data periodically to visualize "floating messages"
+          startMockDataVisualization();
+
+          btnCre.disabled = false;
+        } catch (e) {
+          console.error("Failed to start mock server", e);
+          alert("Error starting mock server. Check console.");
+        }
+      });
+
+      function startMockDataVisualization() {
+        const dummyData = [
+          {
+            type: "twitter",
+            handle: "PeckShieldAlert",
+            text: "Alert: Suspicious movement in Curve pool detected.",
+          },
+          { type: "onchain", pool: "Curve 3pool", amount: "12,000,000" },
+          {
+            type: "twitter",
+            handle: "WhaleAlert",
+            text: "5,000 ETH transferred to unknown wallet.",
+          },
+          { type: "market", var: "ETH/USDC", val: "-2.5%" },
+        ];
+
+        let i = 0;
+        mockInterval = setInterval(() => {
+          spawnFloatingMessage(dummyData[i % dummyData.length]);
+          i++;
+        }, 1500); // Every 1.5s spawn a message
+      }
+
+      // 2. Button: Set Up CRE
+      btnCre.addEventListener("click", async () => {
+        btnCre.classList.add("active");
+        btnCre.textContent = "2. CRE DEPLOYING...";
+
+        // Stop floating messages
+        clearInterval(mockInterval);
+        document
+          .querySelectorAll(".floating-message")
+          .forEach((el) => el.remove());
+
+        // Show strategy info
+        strategyInfo.classList.add("active");
+
+        // Show terminal
+        terminal.classList.add("active");
+        processing.style.display = "block";
+        processing.textContent = "DEPLOYING GHOST LIQUIDITY...";
+
+        addLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "info");
+        addLog("INITIATING DEPLOYMENT SEQUENCE", "info");
+        addLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "info");
+
+        let layerZeroUrl = "";
+
+        try {
+          // Trigger backend to run full deployment
+          const response = await fetch("/run-deployment");
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const text = decoder.decode(value);
+            const lines = text.split("\n");
+
+            lines.forEach((line) => {
+              if (line.trim()) {
+                // Extract LayerZero scan URL
+                if (
+                  line.includes("LayerZero scan:") ||
+                  line.includes("layerzeroscan.com")
+                ) {
+                  const match = line.match(
+                    /(https?:\/\/layerzeroscan\.com\/tx\/[^\s]+)/
+                  );
+                  if (match) {
+                    layerZeroUrl = match[1];
+                    addLog(`🔗 LayerZero TX: ${layerZeroUrl}`, "success");
+                  }
+                }
+
+                // Color coding for terminal output
+                if (
+                  line.includes("success") ||
+                  line.includes("Success") ||
+                  line.includes("✅") ||
+                  line.includes("COMPLETE")
+                ) {
+                  addLog(line, "success");
+                } else if (
+                  line.includes("error") ||
+                  line.includes("Error") ||
+                  line.includes("❌") ||
+                  line.includes("FAILED")
+                ) {
+                  addLog(line, "error");
+                } else if (line.includes("━━━")) {
+                  addLog(line, "info");
+                } else if (line.trim()) {
+                  addLog(line, "info");
+                }
+              }
+            });
+          }
+
+          addLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "success");
+          addLog("🎉 DEPLOYMENT COMPLETE!", "success");
+          addLog("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "success");
+
+          processing.style.display = "none";
+
+          // Hide initial controls, show strategy popup logic
+          initialControls.style.display = "none";
+          // Swap button remains hidden until popup closes
+          // btnSwap.style.display = "block";
+          // btnSwap.disabled = false;
+
+          // Show strategy visualization after 2 seconds
+          setTimeout(() => {
+            if (layerZeroUrl) {
+              lzScanLink.href = layerZeroUrl;
+
+              // Setup click handler to open both LayerZero and BaseScan
+              lzScanLink.onclick = (e) => {
+                e.preventDefault();
+                window.open(layerZeroUrl, "_blank");
+                window.open(
+                  "https://basescan.org/address/0x499943e74fb0ce105688beee8ef2abec5d936d31#events",
+                  "_blank"
+                );
+              };
+            }
+            document.getElementById("strategy-view").classList.add("active");
+          }, 2000);
+        } catch (e) {
+          addLog("❌ Deployment failed.", "error");
+          processing.style.display = "none";
+          console.error(e);
+        }
+      });
+
+      // Close Popup Handler
+      if (closePopupBtn) {
+        closePopupBtn.addEventListener("click", () => {
+          strategyView.classList.remove("active");
+          terminal.style.display = "none"; // Hide terminal
+          if (marketView) marketView.classList.add("active"); // Show market view
+
+          // Now show the swap button
+          btnSwap.style.display = "block";
+          btnSwap.disabled = false;
+        });
+      }
+
+      // ANSI Strip Helper
+      function stripAnsi(str) {
+        return str.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "");
+      }
+
+      // 3. Button: Swap
+      btnSwap.addEventListener("click", async () => {
+        if (btnSwap.classList.contains("active")) return;
+        btnSwap.classList.add("active");
+        btnSwap.textContent = "EXECUTING SWAP...";
+
+        addLog("Initiating Swap Sequence...", "info", swapLogs);
+
+        try {
+          const response = await fetch("/run-swap");
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const text = decoder.decode(value);
+            const lines = text.split("\n");
+
+            lines.forEach((line) => {
+              if (line.trim()) {
+                // Strip ANSI codes
+                const cleanLine = stripAnsi(line);
+
+                // Check for transaction
+                if (cleanLine.includes("Transaction:")) {
+                  const match = cleanLine.match(
+                    /Transaction:\s+(0x[a-fA-F0-9]+)/
+                  );
+                  if (match) {
+                    const txHash = match[1];
+                    const txLink = `https://basescan.org/tx/${txHash}`;
+                    const linkHtml = `Transaction: <a href="${txLink}" target="_blank" style="color: #fff; text-decoration: underline;">${txHash}</a>`;
+
+                    const logDiv = document.createElement("div");
+                    logDiv.className = "log-line";
+                    logDiv.innerHTML = `<span class="log-success">${linkHtml}</span>`;
+                    swapLogs.appendChild(logDiv);
+                    return; // Skip default logging for this line
+                  }
+                }
+
+                if (cleanLine.includes("success") || cleanLine.includes("✓")) {
+                  addLog(cleanLine, "success", swapLogs);
+                } else if (
+                  cleanLine.includes("error") ||
+                  cleanLine.includes("fail")
+                ) {
+                  addLog(cleanLine, "error", swapLogs);
+                } else {
+                  addLog(cleanLine, "info", swapLogs);
+                }
+              }
+            });
+          }
+          btnSwap.textContent = "SWAP COMPLETE ✓";
+          btnSwap.disabled = true;
+        } catch (e) {
+          addLog("Swap failed execution.", "error", swapLogs);
+          btnSwap.textContent = "SWAP FAILED ❌";
+        }
+      });
+    </script>
+  </body>
+</html>
