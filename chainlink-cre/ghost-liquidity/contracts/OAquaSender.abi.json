@@ -1,0 +1,206 @@
+[
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "maker",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "recipient",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountLD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minAmountOutLD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "makerTraits",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "program",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "takerTraitsAndData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "strategySalt",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address[]",
+            "name": "strategyTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "strategyBalances",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "bytes",
+            "name": "metadata",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct SwapPayloadCodec.SwapPayload",
+        "name": "payload",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bytes",
+        "name": "extraOptions",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "minAmountLD",
+        "type": "uint256"
+      }
+    ],
+    "name": "sendSwap",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "guid",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "maker",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "recipient",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountLD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minAmountOutLD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "makerTraits",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "program",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "takerTraitsAndData",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "strategySalt",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address[]",
+            "name": "strategyTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "strategyBalances",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "bytes",
+            "name": "metadata",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct SwapPayloadCodec.SwapPayload",
+        "name": "payload",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bytes",
+        "name": "extraOptions",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "minAmountLD",
+        "type": "uint256"
+      }
+    ],
+    "name": "quoteSendSwap",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "nativeFee",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lzTokenFee",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct MessagingFee",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
