@@ -76,6 +76,12 @@ const config: HardhatUserConfig = {
         ],
     },
     networks: {
+        sepolia: {
+            eid: EndpointId.SEPOLIA_V2_TESTNET,
+            url: process.env.RPC_URL_SEPOLIA || 'https://ethereum-sepolia-rpc.publicnode.com',
+            accounts,
+            hardfork: 'cancun',
+        } as any,
         'arbitrum-sepolia': {
             eid: EndpointId.ARBSEP_V2_TESTNET,
             url: process.env.RPC_URL_ARB_SEPOLIA || 'https://arbitrum-sepolia.gateway.tenderly.co',
