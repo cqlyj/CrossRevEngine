@@ -93,6 +93,12 @@ task('oaqua:send-swap', 'Dispatches a SwapPayload through OAquaSender')
         types.string
     )
     .addOptionalParam(
+        'strategyBuffer',
+        'Amount of tokenOut to include in strategy balances (for AMM liquidity)',
+        '0',
+        types.string
+    )
+    .addOptionalParam(
         'nativeFeeWei',
         'Override the msg.value sent along with sendSwap (in wei)',
         undefined,
@@ -141,10 +147,10 @@ task('oaqua:send-swap', 'Dispatches a SwapPayload through OAquaSender')
         const composeGas = BigInt(args.composeGasLimit ?? '2000000')
         const extraOptions = Options.newOptions().addExecutorComposeOption(0, composeGas, 0n).toHex()
 
-        logger.info(`Dispatching OAqua swap via ${senderDeployment.address} on ${hre.network.name}`)
-        logger.info(`Recipient: ${args.recipient}`)
-        logger.info(`Amount LD: ${amountLD.toString()}`)
-        logger.info(`Strategy salt: ${strategySalt}`)
+        console.log(`[Send] OAqua swap via ${senderDeployment.address}`)
+        console.log(`[Send] Recipient: ${args.recipient}`)
+        console.log(`[Send] Amount: ${amountLD.toString()}`)
+        console.log(`[Send] Salt: ${strategySalt}`)
 
         const stargatePool = await sender.STARGATE_POOL()
         // Use the Stargate ABI to quoteOFT directly
@@ -195,13 +201,10 @@ task('oaqua:send-swap', 'Dispatches a SwapPayload through OAquaSender')
             '0x',
         ]
 
-        logger.info(`Quoting Stargate OFT...`)
+        console.log(`[Send] Quoting Stargate...`)
         const [, , oftReceipt] = await stargateContract.quoteOFT(sendParamTuple)
-        // oftReceipt is a struct, but getContractAt with array ABI might return an array or object depending on ethers version.
-        // Debug log it first.
-        logger.info(`OFT Receipt: ${JSON.stringify(oftReceipt)}`)
-        const amountReceivedLD = oftReceipt.amountReceivedLD || oftReceipt[1] // Try object then array index 1 (index 0 is amountSentLD)
-        logger.info(`Stargate Quote: Sent ${amountLD.toString()} -> Received ${amountReceivedLD.toString()}`)
+        const amountReceivedLD = oftReceipt.amountReceivedLD || oftReceipt[1]
+        console.log(`[Send] Stargate: ${amountLD.toString()} -> ${amountReceivedLD.toString()}`)
 
         // Update payload with the actual amount that will be received on destination
         payload = {
@@ -210,45 +213,62 @@ task('oaqua:send-swap', 'Dispatches a SwapPayload through OAquaSender')
             strategyBalances: [amountReceivedLD, BigNumber.from(args.strategyBuffer ?? '0')],
         }
 
-        // Apply slippage (e.g., 0.5%) for minAmountLD
         const minAmountLD = amountReceivedLD.mul(9950).div(10000)
-        logger.info(`Setting minAmountLD with 0.5% slippage: ${minAmountLD.toString()}`)
+        console.log(`[Send] Min amount (0.5% slippage): ${minAmountLD.toString()}`)
 
         const quote = await sender.quoteSendSwap(payload, extraOptions, minAmountLD)
-        logger.info(`LayerZero fee quote: ${hre.ethers.utils.formatEther(quote.nativeFee)} ETH`)
+        console.log(`[Send] LZ fee: ${hre.ethers.utils.formatEther(quote.nativeFee)} ETH`)
 
         let nativeFee: BigNumber
         if (args.nativeFeeWei != null) {
             nativeFee = BigNumber.from(args.nativeFeeWei)
-            logger.warn(
-                `Using manual nativeFee override: ${hre.ethers.utils.formatEther(nativeFee)} ETH (buffer disabled)`
-            )
+            console.log(`[Send] Fee override: ${hre.ethers.utils.formatEther(nativeFee)} ETH`)
         } else {
             const feeBufferBps = BigNumber.from(args.feeBufferBps ?? '2000')
             const bufferedFee = quote.nativeFee.mul(BPS_DENOMINATOR.add(feeBufferBps)).div(BPS_DENOMINATOR)
             nativeFee = bufferedFee.gt(quote.nativeFee) ? bufferedFee : quote.nativeFee
-
-            logger.info(
-                `LayerZero fee w/ buffer (+${feeBufferBps.toString()} bps): ${hre.ethers.utils.formatEther(nativeFee)} ETH`
-            )
+            console.log(`[Send] Fee w/ buffer: ${hre.ethers.utils.formatEther(nativeFee)} ETH`)
         }
 
-        // Approve the SOURCE chain USDC (Arbitrum), not the destination one
         const tokenInContract = await hre.ethers.getContractAt('IERC20', sourceTokenIn, signer)
         const allowance = await tokenInContract.allowance(signer.address, sender.address)
         if (allowance.lt(amountLD)) {
-            logger.info(`Approving OAquaSender to spend ${amountLD.toString()} of ${sourceTokenIn}...`)
+            console.log(`[Send] Approving USDC...`)
             const approveTx = await tokenInContract.approve(sender.address, ethers.constants.MaxUint256)
             await approveTx.wait()
-            logger.info(`Approved.`)
+            console.log(`[Send] Approved`)
         }
 
+        console.log(`[Send] Sending transaction...`)
         const tx: ContractTransaction = await sender.sendSwap(payload, extraOptions, minAmountLD, {
             value: nativeFee,
-            gasLimit: 2500000, // Explicit gas limit to bypass estimation issues
+            gasLimit: 2500000,
         })
         const receipt = await tx.wait()
 
-        logger.info(`Swap dispatched. Tx hash: ${receipt.transactionHash}`)
+        console.log(`[Send] TX: ${receipt.transactionHash}`)
+        console.log(`[Send] Block: ${receipt.blockNumber}`)
+
+        const fs = require('fs')
+        const path = require('path')
+        const executorAddr = await sender.DESTINATION_EXECUTOR()
+        const strategyInfo = {
+            maker: executorAddr,
+            tokenIn: destinationTokenIn,
+            tokenOut: destinationTokenOut,
+            program: args.program,
+            salt: strategySalt,
+            txHash: receipt.transactionHash,
+            timestamp: Date.now(),
+        }
+
+        const dataDir = path.join(__dirname, '../data')
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true })
+        }
+        fs.writeFileSync(path.join(dataDir, 'last_strategy.json'), JSON.stringify(strategyInfo, null, 2))
+        console.log(`[Send] Strategy saved to data/last_strategy.json`)
+        console.log(`[Send] LayerZero scan: https://layerzeroscan.com/tx/${receipt.transactionHash}`)
+
         return receipt.transactionHash
     })
