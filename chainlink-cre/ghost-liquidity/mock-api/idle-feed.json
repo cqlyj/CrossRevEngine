@@ -1,0 +1,48 @@
+{
+  "feed_version": "1.0",
+  "aggregation_timestamp": "2023-07-30T14:00:00Z",
+  "incident_id": "none",
+  "severity": "normal",
+  "status": "idle",
+
+  "executive_summary": {
+    "event": "Normal market conditions",
+    "impact": "No significant events detected",
+    "market_state": "Stable, low volatility",
+    "opportunity": "None",
+    "risk_level": "low",
+    "confidence": 0.95
+  },
+
+  "social_intelligence": {
+    "twitter_alerts": [],
+    "aggregate_sentiment": 0.05,
+    "panic_level": 0.02,
+    "fud_score": 0.01
+  },
+
+  "onchain_intelligence": {
+    "exploit_summary": {
+      "total_drained_usd": 0,
+      "affected_pools": [],
+      "attack_pattern": "none",
+      "time_window_minutes": 0,
+      "exploit_confidence": 0.0
+    },
+    "suspicious_activity": []
+  },
+
+  "market_intelligence": {
+    "arbitrage_opportunities": [],
+    "volatility": {
+      "level": "low",
+      "index": "VIX_DEFI",
+      "panic_selling": false,
+      "liquidity_crisis": false
+    },
+    "gas_conditions": {
+      "current_gwei": 12,
+      "recommendation": "Normal gas conditions, proceed as usual"
+    }
+  }
+}

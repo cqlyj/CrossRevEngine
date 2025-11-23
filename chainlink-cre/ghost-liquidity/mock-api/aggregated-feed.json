@@ -3,7 +3,8 @@
   "aggregation_timestamp": "2023-07-30T14:26:00Z",
   "incident_id": "vyper-curve-exploit-20230730",
   "severity": "critical",
-  
+  "status": "chance",
+
   "executive_summary": {
     "event": "Vyper Compiler Reentrancy Exploit on Curve Finance",
     "impact": "Multiple Curve factory pools drained ($24M+ loss)",
@@ -104,8 +105,8 @@
       },
       {
         "asset": "alETH",
-        "eth_price": 1850.00,
-        "dex_price": 1612.00,
+        "eth_price": 1850.0,
+        "dex_price": 1612.0,
         "depeg_percentage": 8.3,
         "peg_ratio": 0.871,
         "opportunity_rating": "high",
@@ -119,7 +120,7 @@
       },
       {
         "asset": "msETH",
-        "eth_price": 1850.00,
+        "eth_price": 1850.0,
         "dex_price": 1660.74,
         "depeg_percentage": 8.4,
         "peg_ratio": 0.898,
@@ -132,7 +133,7 @@
       },
       {
         "asset": "pETH",
-        "eth_price": 1850.00,
+        "eth_price": 1850.0,
         "dex_price": 1697.34,
         "depeg_percentage": 8.3,
         "peg_ratio": 0.917,
@@ -172,7 +173,7 @@
       {
         "asset": "CRV",
         "action": "BUY",
-        "buy_price": 0.520,
+        "buy_price": 0.52,
         "max_allocation_percent": 30,
         "curve_type": "CONSTANT_SUM",
         "priority": 1,
@@ -181,7 +182,7 @@
       {
         "asset": "alETH",
         "action": "BUY",
-        "buy_price": 1550.00,
+        "buy_price": 1550.0,
         "max_allocation_percent": 20,
         "curve_type": "STABLE_SWAP",
         "priority": 2,
@@ -190,7 +191,7 @@
       {
         "asset": "pETH",
         "action": "BUY",
-        "buy_price": 1680.00,
+        "buy_price": 1680.0,
         "max_allocation_percent": 15,
         "curve_type": "STABLE_SWAP",
         "priority": 3,
@@ -222,4 +223,3 @@
     "refresh_interval_seconds": 120
   }
 }
-
