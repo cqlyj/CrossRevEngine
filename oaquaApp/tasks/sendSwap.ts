@@ -140,7 +140,9 @@ task('oaqua:send-swap', 'Dispatches a SwapPayload through OAquaSender')
             takerTraitsAndData: normalizeHex(args.takerData, '0x'),
             strategySalt,
             strategyTokens: [destinationTokenIn, destinationTokenOut],
-            strategyBalances: [amountLD, BigNumber.from(args.strategyBuffer ?? '0')], // Will be updated
+            // CRITICAL: strategyBalances must match strategyTokens order!
+            // XYC swap needs BOTH tokens: [USDT, USDC] both with same amount for 1:1 pool
+            strategyBalances: [amountLD, amountLD], // Will be updated with actual received amount
             metadata: normalizeHex(args.metadata, '0x'),
         }
 
@@ -207,10 +209,14 @@ task('oaqua:send-swap', 'Dispatches a SwapPayload through OAquaSender')
         console.log(`[Send] Stargate: ${amountLD.toString()} -> ${amountReceivedLD.toString()}`)
 
         // Update payload with the actual amount that will be received on destination
+        // strategyBalances[0] = USDT (destination token, already on Base)
+        // strategyBalances[1] = USDC (source token, received from LayerZero)
+        // For equal pool: both should have same amount
+        const strategyBuffer = BigNumber.from(args.strategyBuffer ?? amountReceivedLD.toString())
         payload = {
             ...payload,
             amountLD: amountReceivedLD,
-            strategyBalances: [amountReceivedLD, BigNumber.from(args.strategyBuffer ?? '0')],
+            strategyBalances: [strategyBuffer, amountReceivedLD],
         }
 
         const minAmountLD = amountReceivedLD.mul(9950).div(10000)
