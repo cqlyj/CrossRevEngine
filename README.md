@@ -170,7 +170,7 @@ Current implementation uses a **Constant Product** curve \(x \cdot y = k\):
 - **Token Out**: USDT (pre-funded on Base)
 - **Curve**: Programmable via SwapVM opcodes
 
----
+****---
 
 ## 🚀 Quick Start
 

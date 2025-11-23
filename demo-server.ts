@@ -25,7 +25,6 @@ serve({
       return new Response(Bun.file(path.join(BASE_DIR, "index.html")));
     }
 
-    // 2. Start Mock Server
     if (url.pathname === "/start-mock") {
       if (mockServerProcess) {
         return new Response(JSON.stringify({ status: "already_running" }));

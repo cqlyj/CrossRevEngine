@@ -667,14 +667,11 @@
         btnSomething.textContent = "1. MOCK SERVER RUNNING";
 
         try {
-          // Call backend to start mock server
           const res = await fetch("/start-mock");
           const data = await res.json();
           console.log("Mock server started:", data);
 
           sysDot.classList.add("active");
-
-          // Start fetching mock data periodically to visualize "floating messages"
           startMockDataVisualization();
 
           btnCre.disabled = false;

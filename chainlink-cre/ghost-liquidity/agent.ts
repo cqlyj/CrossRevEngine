@@ -5,9 +5,6 @@ import type { AggregatedFeed, SchrodingerStrategy } from "./types";
  *
  * Analyzes real-time market intelligence during DeFi crisis events
  * and generates actionable Schrödinger's Liquidity strategies.
- *
- * In production, this would integrate with Gemini/Claude/GPT.
- * For demo purposes, returns a pre-computed strategy based on market data.
  */
 export class GhostLiquidityAgent {
   /**
@@ -16,7 +13,6 @@ export class GhostLiquidityAgent {
    * For demo, returns a pre-computed strategy matching our OAqua setup
    */
   static queryStrategy(feed: AggregatedFeed): SchrodingerStrategy {
-    // Mock AI decision: Convert crisis into OAqua-compatible strategy
     const strategy: SchrodingerStrategy = {
       strategy_type: "SCHRODINGER_LIQUIDITY",
       incident: feed.incident_id,
