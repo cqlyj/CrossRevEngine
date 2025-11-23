@@ -12,8 +12,11 @@ import type { AggregatedFeed, SchrodingerStrategy } from "./types";
 export class GhostLiquidityAgent {
   /**
    * Query the AI agent for crisis response strategy
+   * In production, this would call Gemini/Claude API
+   * For demo, returns a pre-computed strategy matching our OAqua setup
    */
   static queryStrategy(feed: AggregatedFeed): SchrodingerStrategy {
+    // Mock AI decision: Convert crisis into OAqua-compatible strategy
     const strategy: SchrodingerStrategy = {
       strategy_type: "SCHRODINGER_LIQUIDITY",
       incident: feed.incident_id,
@@ -43,31 +46,21 @@ export class GhostLiquidityAgent {
       },
       swapvm_strategies: [
         {
-          asset: "CRV",
+          asset: "USDT",
           action: "BUY",
-          curve_type: "CONSTANT_SUM",
-          entry_price: 0.52,
-          allocation_percent: 30,
+          curve_type: "AMM_XYC",
+          entry_price: 1.0,
+          allocation_percent: 100,
           priority: 1,
-          bytecode: "0x1100",
-        },
-        {
-          asset: "alETH",
-          action: "BUY",
-          curve_type: "STABLE_SWAP",
-          entry_price: 1550,
-          allocation_percent: 20,
-          priority: 2,
-          bytecode: "0x1100",
-        },
-        {
-          asset: "pETH",
-          action: "BUY",
-          curve_type: "STABLE_SWAP",
-          entry_price: 1680,
-          allocation_percent: 15,
-          priority: 3,
-          bytecode: "0x1100",
+          // This bytecode matches the OAqua AMM strategy format
+          // In production, this would be generated from 1inch SDK
+          bytecode:
+            "0x1508000000006922b0ad134000000000000000000000000000000000000000000000000000000002540be40000000000000000000000000000000000000000000000000000000002540be4001100",
+          oaqua_params: {
+            amount: "10000", // 0.01 USDC
+            tokenOut: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", // USDT on Base
+            strategyBuffer: "10000",
+          },
         },
       ],
       execution_plan: {
