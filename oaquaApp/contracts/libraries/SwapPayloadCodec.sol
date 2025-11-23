@@ -2,7 +2,6 @@
 pragma solidity ^0.8.22;
 
 /// @notice Shared struct + helpers that keep the OAqua sender/executor payloads symmetric.
-/// @dev  Mirrors the guidance in `knowledge/aqua_sdk.txt` & `knowledge/oapp_composer.txt`.
 library SwapPayloadCodec {
     error SwapPayloadCodec_InvalidArrayLengths();
     error SwapPayloadCodec_InvalidTokens();

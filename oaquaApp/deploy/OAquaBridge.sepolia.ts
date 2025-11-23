@@ -11,7 +11,6 @@ const deployOAquaBridgeSepolia: DeployFunction = async function (hre: HardhatRun
         return
     }
 
-    // Get MockSender address
     const mockSender = await deployments.get('MockSender')
 
     console.log(`[BridgeSepolia] Deploying OAquaBridge on ${network.name}`)

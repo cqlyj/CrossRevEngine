@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-/**
- * @title MockSender
- * @notice Mock OAquaSender for Sepolia testnet - does nothing, just emits events
- * @dev Used for CRE demo on testnet while real txs happen on mainnet
- */
 contract MockSender {
     struct SwapPayload {
         address maker;
@@ -30,7 +25,6 @@ contract MockSender {
         bytes calldata /*_extraOptions*/,
         uint256 /*_minAmountLD*/
     ) external payable returns (bytes32 strategyHash) {
-        // Generate mock strategy hash
         strategyHash = keccak256(abi.encode(_payload.maker, _payload.strategySalt, block.timestamp));
 
         emit MockSwapCalled(_payload.maker, _payload.amountLD, _payload.strategySalt, block.timestamp);
@@ -43,7 +37,6 @@ contract MockSender {
         bytes calldata /*_extraOptions*/,
         uint256 /*_minAmountLD*/
     ) external pure returns (uint256 nativeFee, uint256 lzTokenFee) {
-        // Return minimal fee for testing
         return (0.001 ether, 0);
     }
 }

@@ -14,7 +14,6 @@ import { IStargate } from "./interfaces/IStargate.sol";
 import { SwapPayloadCodec } from "./libraries/SwapPayloadCodec.sol";
 
 /// @notice Arbitrum-side dispatcher that wraps Stargate sends with a canonical SwapVM payload.
-/// @dev    Guidance: README.md + `knowledge/oapp_composer.txt`.
 contract OAquaSender is OApp, OAppOptionsType3 {
     using SafeERC20 for IERC20;
 

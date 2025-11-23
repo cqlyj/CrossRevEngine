@@ -17,8 +17,6 @@ import { IAquaSwapVMRouter } from "./interfaces/IAquaSwapVMRouter.sol";
 import { IStargate } from "./interfaces/IStargate.sol";
 import { SwapPayloadCodec } from "./libraries/SwapPayloadCodec.sol";
 
-/// @notice Base-side executor that authenticates Stargate compose calls and spins ephemeral Aqua strategies.
-/// @dev    Contracts interacting with Aqua/SwapVM must stay aligned with `knowledge/aqua.txt`.
 contract OAquaExecutor is OApp, OAppOptionsType3, AquaApp, IOAppComposer {
     using SafeERC20 for IERC20;
 
