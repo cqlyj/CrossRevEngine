@@ -2,6 +2,9 @@ import { ethers } from 'hardhat'
 import * as fs from 'fs'
 import * as path from 'path'
 
+// Reload .env to get latest deployed addresses
+require('dotenv').config({ path: '.env', override: true })
+
 async function main() {
     const executorAddress = process.env.OAQUA_EXECUTOR_ADDRESS || process.env.OAQUA_EXECUTOR_ADDRESS_BASE
     const aquaAddress = process.env.BASE_AQUA_ADDRESS
@@ -18,16 +21,19 @@ async function main() {
     const dataPath = path.join(__dirname, '../data/last_strategy.json')
     let strategyHash: string | undefined
     let program = '0x1100'
+    let makerAddress = executorAddress
 
     if (fs.existsSync(dataPath)) {
         const strategyInfo = JSON.parse(fs.readFileSync(dataPath, 'utf8'))
         program = strategyInfo.program || '0x1100'
+        makerAddress = strategyInfo.maker || executorAddress
         console.log('[Check] Loaded strategy from data/last_strategy.json')
+        console.log('[Check] Using maker from JSON:', makerAddress)
     }
 
     // Compute strategy hash
     const order = {
-        maker: executorAddress,
+        maker: makerAddress,
         traits: 0,
         data: program,
     }
@@ -37,7 +43,7 @@ async function main() {
     )
     strategyHash = ethers.utils.keccak256(strategyData)
 
-    console.log('[Check] Maker:', executorAddress)
+    console.log('[Check] Maker:', makerAddress)
     console.log('[Check] Aqua:', aquaAddress)
     console.log('[Check] Router:', routerAddress)
     console.log('[Check] Strategy Hash:', strategyHash)
@@ -48,18 +54,8 @@ async function main() {
     ]
     const aqua = await ethers.getContractAt(aquaAbi, aquaAddress)
 
-    const [usdcBalance, usdcTokenCount] = await aqua.rawBalances(
-        executorAddress,
-        routerAddress,
-        strategyHash,
-        usdcAddress
-    )
-    const [usdtBalance, usdtTokenCount] = await aqua.rawBalances(
-        executorAddress,
-        routerAddress,
-        strategyHash,
-        usdtAddress
-    )
+    const [usdcBalance, usdcTokenCount] = await aqua.rawBalances(makerAddress, routerAddress, strategyHash, usdcAddress)
+    const [usdtBalance, usdtTokenCount] = await aqua.rawBalances(makerAddress, routerAddress, strategyHash, usdtAddress)
 
     console.log('[Check] USDC:', ethers.utils.formatUnits(usdcBalance, 6), 'tokens:', usdcTokenCount.toString())
     console.log('[Check] USDT:', ethers.utils.formatUnits(usdtBalance, 6), 'tokens:', usdtTokenCount.toString())
