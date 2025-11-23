@@ -7,7 +7,10 @@ export const configSchema = z.object({
   targetChain: z.string(),
   oappSenderAddress: z.string(),
   oappExecutorAddress: z.string(),
+  oaquaBridgeAddress: z.string(),
+  usdcAddress: z.string(),
   recipientAddress: z.string(),
+  gasLimit: z.string(),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -56,11 +59,13 @@ export interface AggregatedFeed {
   market_intelligence: {
     arbitrage_opportunities: Array<{
       asset: string;
-      spread_percentage: number;
+      spread_percentage?: number;
+      depeg_percentage?: number;
       risk_level: string;
       recommended_action: string;
     }>;
     volatility: {
+      level: string;
       index: string;
       panic_selling: boolean;
       liquidity_crisis: boolean;
@@ -70,6 +75,22 @@ export interface AggregatedFeed {
       recommendation: string;
     };
   };
+}
+
+export interface SwapPayload {
+  maker: string;
+  tokenIn: string;
+  tokenOut: string;
+  recipient: string;
+  amountLD: string;
+  minAmountOutLD: string;
+  makerTraits: string;
+  program: string;
+  takerTraitsAndData: string;
+  strategySalt: string;
+  strategyTokens: string[];
+  strategyBalances: string[];
+  metadata: string;
 }
 
 export interface SchrodingerStrategy {
