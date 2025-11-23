@@ -1,13 +1,17 @@
 import assert from 'assert'
-
 import { EndpointId } from '@layerzerolabs/lz-definitions'
 import { type DeployFunction } from 'hardhat-deploy/types'
+import { updateEnvFile } from '../scripts/lib/envUpdater'
 
 const contractName = 'OAquaSender'
 
 async function resolveExecutorAddress(hre: Parameters<DeployFunction>[0]): Promise<string | undefined> {
     if (process.env.OAQUA_EXECUTOR_ADDRESS && process.env.OAQUA_EXECUTOR_ADDRESS !== '') {
         return process.env.OAQUA_EXECUTOR_ADDRESS
+    }
+
+    if (process.env.OAQUA_EXECUTOR_ADDRESS_BASE && process.env.OAQUA_EXECUTOR_ADDRESS_BASE !== '') {
+        return process.env.OAQUA_EXECUTOR_ADDRESS_BASE
     }
 
     if (hre.companionNetworks?.base) {
@@ -38,18 +42,15 @@ const deploy: DeployFunction = async (hre) => {
 
     assert(tokenIn, 'Missing USDC_ADDRESS_ARBITRUM in env')
     assert(stargatePool, 'Missing ARBITRUM_STARGATE_POOL in env')
-    assert(destinationExecutor, 'Could not determine OAquaExecutor address. Deploy OAquaExecutor on Base first.')
+    assert(destinationExecutor, 'Missing OAQUA_EXECUTOR_ADDRESS in .env. Deploy OAquaExecutor on Base first.')
     assert(destinationTokenIn, 'Missing USDC_ADDRESS_BASE in env')
     assert(destinationTokenOut, 'Missing USDT_ADDRESS_BASE in env')
 
     const endpointDeployment = await deployments.get('EndpointV2')
 
-    console.log(`Network: ${network.name}`)
-    console.log(`Deployer: ${deployer}`)
-    console.log(`EndpointV2: ${endpointDeployment.address}`)
-    console.log(`Destination OAquaExecutor: ${destinationExecutor}`)
-    console.log(`Destination TokenIn (Base USDC): ${destinationTokenIn}`)
-    console.log(`Destination TokenOut (Base USDT): ${destinationTokenOut}`)
+    console.log(`[Sender] Deploying to ${network.name}`)
+    console.log(`[Sender] Deployer: ${deployer}`)
+    console.log(`[Sender] Target Executor: ${destinationExecutor}`)
 
     const { address } = await deploy(contractName, {
         from: deployer,
@@ -67,7 +68,12 @@ const deploy: DeployFunction = async (hre) => {
         skipIfAlreadyDeployed: false,
     })
 
-    console.log(`Deployed ${contractName} on ${network.name}: ${address}`)
+    console.log(`[Sender] Deployed at: ${address}`)
+
+    // Update .env file with new sender address
+    updateEnvFile('OAQUA_SENDER_ADDRESS', address)
+    updateEnvFile('OAQUA_SENDER_ADDRESS_ARBITRUM', address)
+    console.log(`[Sender] Updated .env with address`)
 }
 
 deploy.tags = [contractName]

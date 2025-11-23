@@ -1,6 +1,6 @@
 import assert from 'assert'
-
 import { type DeployFunction } from 'hardhat-deploy/types'
+import { updateEnvFile } from '../scripts/lib/envUpdater'
 
 const contractName = 'OAquaExecutor'
 
@@ -14,29 +14,29 @@ const deploy: DeployFunction = async (hre) => {
     const aquaAddress = process.env.BASE_AQUA_ADDRESS
     const routerAddress = process.env.BASE_AQUA_SWAPVM_ROUTER
     const stargatePool = process.env.BASE_STARGATE_POOL
-    const tokenIn = process.env.USDC_ADDRESS_BASE
-    const tokenOut = process.env.USDT_ADDRESS_BASE
 
     assert(aquaAddress, 'Missing BASE_AQUA_ADDRESS in env')
     assert(routerAddress, 'Missing BASE_AQUA_SWAPVM_ROUTER in env')
     assert(stargatePool, 'Missing BASE_STARGATE_POOL in env')
-    assert(tokenIn, 'Missing USDC_ADDRESS_BASE in env')
-    assert(tokenOut, 'Missing USDT_ADDRESS_BASE in env')
 
     const endpointDeployment = await deployments.get('EndpointV2')
 
-    console.log(`Network: ${network.name}`)
-    console.log(`Deployer: ${deployer}`)
-    console.log(`EndpointV2: ${endpointDeployment.address}`)
+    console.log(`[Executor] Deploying to ${network.name}`)
+    console.log(`[Executor] Deployer: ${deployer}`)
 
     const { address } = await deploy(contractName, {
         from: deployer,
-        args: [endpointDeployment.address, deployer, aquaAddress, routerAddress, stargatePool, tokenIn, tokenOut],
+        args: [endpointDeployment.address, deployer, aquaAddress, routerAddress, stargatePool],
         log: true,
         skipIfAlreadyDeployed: false,
     })
 
-    console.log(`Deployed ${contractName} on ${network.name}: ${address}`)
+    console.log(`[Executor] Deployed at: ${address}`)
+
+    // Update .env file with new executor address
+    updateEnvFile('OAQUA_EXECUTOR_ADDRESS', address)
+    updateEnvFile('OAQUA_EXECUTOR_ADDRESS_BASE', address)
+    console.log(`[Executor] Updated .env with address`)
 }
 
 deploy.tags = [contractName]
