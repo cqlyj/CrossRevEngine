@@ -1,9 +1,12 @@
 {
-  "schedule": "*/20 * * * * *",
+  "schedule": "*/30 * * * * *",
   "aggregatedFeedUrl": "http://localhost:8000/aggregated-feed.json",
-  "baseChain": "arbitrum-mainnet",
+  "baseChain": "ethereum-testnet-sepolia",
   "targetChain": "base-mainnet",
-  "oappSenderAddress": "0x13e250a98928b01542510707842Ea5eabd9aF7C6",
+  "oappSenderAddress": "0x1805E840065112D8548EeCc515A7679476a87435",
   "oappExecutorAddress": "0x471e8aad77a1A29335081850b4e34fA7863F762A",
-  "recipientAddress": "0x120C1fc5B7f357c0254cDC8027970DDD6405e115"
+  "oaquaBridgeAddress": "0x7C9dc89CaaA203c294F42B5d295205c458963892",
+  "usdcAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "recipientAddress": "0x120C1fc5B7f357c0254cDC8027970DDD6405e115",
+  "gasLimit": "5000000"
 }
