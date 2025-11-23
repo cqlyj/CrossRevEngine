@@ -1,0 +1,126 @@
+{
+  "source": "multi_exchange_aggregator",
+  "timestamp": "2023-07-30T14:25:30Z",
+  "assets": [
+    {
+      "symbol": "CRV",
+      "name": "Curve DAO Token",
+      "cex_price": {
+        "binance": 0.652,
+        "coinbase": 0.649,
+        "kraken": 0.651,
+        "average": 0.651,
+        "volume_24h_usd": 145000000,
+        "last_update": "2023-07-30T14:25:15Z"
+      },
+      "dex_price": {
+        "uniswap_v3": 0.498,
+        "curve": 0.502,
+        "sushiswap": 0.495,
+        "average": 0.498,
+        "liquidity_usd": 18500000,
+        "last_update": "2023-07-30T14:25:28Z"
+      },
+      "spread_analysis": {
+        "absolute_spread": 0.153,
+        "percentage_spread": 23.5,
+        "arbitrage_opportunity": "extreme",
+        "liquidity_ratio": 0.127,
+        "risk_level": "high"
+      },
+      "price_change": {
+        "1h": -14.8,
+        "24h": -28.3,
+        "7d": -35.6
+      }
+    },
+    {
+      "symbol": "alETH",
+      "name": "Alchemix ETH",
+      "cex_price": {
+        "binance": null,
+        "coinbase": null,
+        "average": null,
+        "volume_24h_usd": 0,
+        "last_update": null
+      },
+      "dex_price": {
+        "uniswap_v3": 1625.34,
+        "curve": 1598.21,
+        "sushiswap": 1612.45,
+        "average": 1612.00,
+        "liquidity_usd": 3200000,
+        "last_update": "2023-07-30T14:25:22Z"
+      },
+      "eth_peg": {
+        "eth_price": 1850.00,
+        "peg_ratio": 0.871,
+        "expected_peg": 0.95,
+        "depeg_percentage": 8.3,
+        "is_depegged": true
+      },
+      "price_change": {
+        "1h": -18.2,
+        "24h": -32.7,
+        "7d": -28.9
+      }
+    },
+    {
+      "symbol": "msETH",
+      "name": "MetaStable ETH",
+      "cex_price": null,
+      "dex_price": {
+        "uniswap_v3": 1678.92,
+        "curve": 1642.55,
+        "average": 1660.74,
+        "liquidity_usd": 2100000,
+        "last_update": "2023-07-30T14:25:20Z"
+      },
+      "eth_peg": {
+        "eth_price": 1850.00,
+        "peg_ratio": 0.898,
+        "expected_peg": 0.98,
+        "depeg_percentage": 8.4,
+        "is_depegged": true
+      },
+      "price_change": {
+        "1h": -16.5,
+        "24h": -29.1,
+        "7d": -25.3
+      }
+    },
+    {
+      "symbol": "pETH",
+      "name": "Pegged ETH",
+      "cex_price": null,
+      "dex_price": {
+        "uniswap_v3": 1705.23,
+        "curve": 1689.44,
+        "average": 1697.34,
+        "liquidity_usd": 1800000,
+        "last_update": "2023-07-30T14:25:25Z"
+      },
+      "eth_peg": {
+        "eth_price": 1850.00,
+        "peg_ratio": 0.917,
+        "expected_peg": 1.0,
+        "depeg_percentage": 8.3,
+        "is_depegged": true
+      },
+      "price_change": {
+        "1h": -12.3,
+        "24h": -24.8,
+        "7d": -19.2
+      }
+    }
+  ],
+  "market_conditions": {
+    "overall_volatility": "extreme",
+    "panic_selling_detected": true,
+    "liquidity_crisis": true,
+    "average_spread_all_assets": 23.5,
+    "fear_greed_index": 12,
+    "gas_price_gwei": 85
+  }
+}
+

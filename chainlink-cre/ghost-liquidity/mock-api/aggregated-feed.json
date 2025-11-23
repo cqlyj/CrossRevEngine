@@ -1,0 +1,225 @@
+{
+  "feed_version": "1.0",
+  "aggregation_timestamp": "2023-07-30T14:26:00Z",
+  "incident_id": "vyper-curve-exploit-20230730",
+  "severity": "critical",
+  
+  "executive_summary": {
+    "event": "Vyper Compiler Reentrancy Exploit on Curve Finance",
+    "impact": "Multiple Curve factory pools drained ($24M+ loss)",
+    "market_state": "Extreme panic, liquidity crisis, 23% arbitrage spreads",
+    "opportunity": "CEX-DEX arbitrage on CRV and depegged ETH derivatives",
+    "risk_level": "high",
+    "confidence": 0.87
+  },
+
+  "social_intelligence": {
+    "twitter_alerts": [
+      {
+        "account": "@PeckShieldAlert",
+        "credibility": 0.98,
+        "message": "Reentrancy exploit detected on multiple Curve Finance factory pools. Estimated loss: $24M+",
+        "sentiment": "critical_negative",
+        "timestamp": "2023-07-30T14:15:32Z"
+      },
+      {
+        "account": "@CurveFinance",
+        "credibility": 1.0,
+        "message": "Core pools (3pool, stETH) are SAFE. DO NOT interact with affected pools",
+        "sentiment": "warning",
+        "timestamp": "2023-07-30T14:18:45Z"
+      },
+      {
+        "account": "@DefiLlama",
+        "credibility": 0.95,
+        "message": "Vyper compiler bug (versions 0.2.15-0.3.0) causing reentrancy vulnerability. CRV down 15%",
+        "sentiment": "critical_negative",
+        "timestamp": "2023-07-30T14:20:12Z"
+      },
+      {
+        "account": "@whale_alert",
+        "credibility": 0.92,
+        "message": "52,000,000 CRV (31,200,000 USD) transferred to Binance. Possible dumping incoming",
+        "sentiment": "bearish",
+        "timestamp": "2023-07-30T14:22:08Z"
+      }
+    ],
+    "aggregate_sentiment": -0.84,
+    "panic_level": 0.91,
+    "fud_score": 0.88
+  },
+
+  "onchain_intelligence": {
+    "exploit_summary": {
+      "total_drained_usd": 23601751,
+      "affected_pools": ["alETH/ETH", "msETH/ETH", "pETH/ETH"],
+      "attack_pattern": "reentrancy_via_vyper_bug",
+      "time_window_minutes": 10,
+      "exploit_confidence": 0.98
+    },
+    "suspicious_activity": [
+      {
+        "type": "LiquidityRemoved",
+        "pool": "alETH/ETH",
+        "amount_usd": 7845621,
+        "flags": ["large_withdrawal", "new_address", "rapid_execution"]
+      },
+      {
+        "type": "LiquidityRemoved",
+        "pool": "msETH/ETH",
+        "amount_usd": 9234187,
+        "flags": ["flash_loan", "contract_interaction"]
+      },
+      {
+        "type": "LiquidityRemoved",
+        "pool": "pETH/ETH",
+        "amount_usd": 6521943,
+        "flags": ["coordinated_attack", "multiple_pools"]
+      },
+      {
+        "type": "TokenTransfer",
+        "token": "CRV",
+        "amount_usd": 31200000,
+        "destination": "Binance Hot Wallet",
+        "flags": ["large_transfer", "cex_deposit", "potential_dump"]
+      }
+    ]
+  },
+
+  "market_intelligence": {
+    "arbitrage_opportunities": [
+      {
+        "asset": "CRV",
+        "cex_price": 0.651,
+        "dex_price": 0.498,
+        "spread_percentage": 23.5,
+        "spread_usd": 0.153,
+        "opportunity_rating": "extreme",
+        "risk_level": "high",
+        "liquidity_dex_usd": 18500000,
+        "recommended_action": "BUY_DEX_SELL_CEX",
+        "max_position_size_usd": 500000,
+        "expected_profit_percentage": 18.5,
+        "execution_risk": 0.72
+      },
+      {
+        "asset": "alETH",
+        "eth_price": 1850.00,
+        "dex_price": 1612.00,
+        "depeg_percentage": 8.3,
+        "peg_ratio": 0.871,
+        "opportunity_rating": "high",
+        "risk_level": "very_high",
+        "liquidity_dex_usd": 3200000,
+        "recommended_action": "BUY_AT_DISCOUNT",
+        "max_position_size_usd": 200000,
+        "expected_profit_percentage": 8.0,
+        "execution_risk": 0.85,
+        "notes": "Pool exploit - high smart contract risk"
+      },
+      {
+        "asset": "msETH",
+        "eth_price": 1850.00,
+        "dex_price": 1660.74,
+        "depeg_percentage": 8.4,
+        "peg_ratio": 0.898,
+        "opportunity_rating": "medium",
+        "risk_level": "very_high",
+        "liquidity_dex_usd": 2100000,
+        "recommended_action": "AVOID",
+        "execution_risk": 0.89,
+        "notes": "Affected pool - do not interact"
+      },
+      {
+        "asset": "pETH",
+        "eth_price": 1850.00,
+        "dex_price": 1697.34,
+        "depeg_percentage": 8.3,
+        "peg_ratio": 0.917,
+        "opportunity_rating": "medium",
+        "risk_level": "very_high",
+        "liquidity_dex_usd": 1800000,
+        "recommended_action": "AVOID",
+        "execution_risk": 0.88,
+        "notes": "Affected pool - high contagion risk"
+      }
+    ],
+    "volatility": {
+      "level": "extreme",
+      "vix_equivalent": 92,
+      "panic_selling": true,
+      "liquidity_crisis": true
+    },
+    "gas_conditions": {
+      "current_gwei": 85,
+      "average_gwei": 35,
+      "spike_percentage": 143,
+      "network_congestion": "high"
+    }
+  },
+
+  "ai_recommendation": {
+    "strategy_type": "SCHRODINGER_LIQUIDITY",
+    "description": "Deploy multi-asset buy orders simultaneously; execute whichever fills first, cancel others",
+    "rationale": [
+      "Cannot predict which asset will bottom first (high uncertainty)",
+      "All assets show extreme discounts but different risk profiles",
+      "CRV has CEX-DEX arbitrage (lower smart contract risk)",
+      "alETH/msETH/pETH have deeper discounts but pool exploit risk",
+      "Solution: List liquidity for multiple assets, let market decide"
+    ],
+    "positions": [
+      {
+        "asset": "CRV",
+        "action": "BUY",
+        "buy_price": 0.520,
+        "max_allocation_percent": 30,
+        "curve_type": "CONSTANT_SUM",
+        "priority": 1,
+        "reasoning": "Safest bet - CEX arbitrage with no pool interaction"
+      },
+      {
+        "asset": "alETH",
+        "action": "BUY",
+        "buy_price": 1550.00,
+        "max_allocation_percent": 20,
+        "curve_type": "STABLE_SWAP",
+        "priority": 2,
+        "reasoning": "High risk but 8% discount to peg"
+      },
+      {
+        "asset": "pETH",
+        "action": "BUY",
+        "buy_price": 1680.00,
+        "max_allocation_percent": 15,
+        "curve_type": "STABLE_SWAP",
+        "priority": 3,
+        "reasoning": "Smaller depeg, potentially safer recovery"
+      }
+    ],
+    "risk_management": {
+      "total_capital_allocation": 65,
+      "reserve_cash": 35,
+      "stop_loss_enabled": true,
+      "max_drawdown_percent": 12,
+      "exit_strategy": "First fill executes, cancel remaining orders immediately"
+    },
+    "confidence": 0.78,
+    "expected_roi": 15.2,
+    "time_horizon_hours": 6
+  },
+
+  "metadata": {
+    "data_sources": [
+      "twitter_api",
+      "blockchain_indexer",
+      "multi_exchange_aggregator",
+      "defi_llama",
+      "dune_analytics"
+    ],
+    "last_updated": "2023-07-30T14:26:00Z",
+    "next_update_scheduled": "2023-07-30T14:28:00Z",
+    "refresh_interval_seconds": 120
+  }
+}
+

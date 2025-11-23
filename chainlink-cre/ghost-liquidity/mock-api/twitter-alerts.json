@@ -1,0 +1,70 @@
+{
+  "source": "twitter_api",
+  "timestamp": "2023-07-30T14:23:15Z",
+  "alerts": [
+    {
+      "id": "tweet_001",
+      "account": "@PeckShieldAlert",
+      "verified": true,
+      "followers": 458000,
+      "text": "🚨 CRITICAL: Reentrancy exploit detected on multiple Curve Finance factory pools. At least 4 pools affected: alETH, msETH, pETH. Estimated loss: $24M+. Users advised to withdraw liquidity immediately. #DeFiSecurity",
+      "timestamp": "2023-07-30T14:15:32Z",
+      "engagement": {
+        "retweets": 1847,
+        "likes": 3205,
+        "replies": 892
+      },
+      "sentiment_score": -0.95,
+      "urgency": "critical"
+    },
+    {
+      "id": "tweet_002",
+      "account": "@CurveFinance",
+      "verified": true,
+      "followers": 287000,
+      "text": "We are aware of the exploit on several factory pools. Core pools (3pool, stETH) are SAFE. Investigation ongoing. DO NOT interact with affected pools until further notice.",
+      "timestamp": "2023-07-30T14:18:45Z",
+      "engagement": {
+        "retweets": 2103,
+        "likes": 4521,
+        "replies": 1456
+      },
+      "sentiment_score": -0.72,
+      "urgency": "high"
+    },
+    {
+      "id": "tweet_003",
+      "account": "@DefiLlama",
+      "verified": true,
+      "followers": 198000,
+      "text": "🔴 LIVE UPDATE: Vyper compiler bug (versions 0.2.15-0.3.0) causing reentrancy vulnerability. Multiple protocols potentially affected. CRV down 15% in last hour. Monitoring situation.",
+      "timestamp": "2023-07-30T14:20:12Z",
+      "engagement": {
+        "retweets": 987,
+        "likes": 1843,
+        "replies": 432
+      },
+      "sentiment_score": -0.88,
+      "urgency": "critical"
+    },
+    {
+      "id": "tweet_004",
+      "account": "@whale_alert",
+      "verified": true,
+      "followers": 1200000,
+      "text": "🐋 52,000,000 CRV (31,200,000 USD) transferred from unknown wallet to Binance. Possible dumping incoming.",
+      "timestamp": "2023-07-30T14:22:08Z",
+      "engagement": {
+        "retweets": 645,
+        "likes": 1234,
+        "replies": 287
+      },
+      "sentiment_score": -0.81,
+      "urgency": "high"
+    }
+  ],
+  "aggregate_sentiment": -0.84,
+  "alert_count": 4,
+  "critical_keywords": ["exploit", "reentrancy", "Vyper", "Curve", "vulnerability", "loss"]
+}
+

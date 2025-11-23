@@ -1,0 +1,67 @@
+{
+  "source": "blockchain_indexer",
+  "timestamp": "2023-07-30T14:25:00Z",
+  "chain": "ethereum-mainnet",
+  "block_number": 17792715,
+  "events": [
+    {
+      "event_type": "LiquidityRemoved",
+      "pool_address": "0x9c2c8910f113181783c249d8f6aa41b51cde0f0c",
+      "pool_name": "alETH/ETH Curve Pool",
+      "token_a": "alETH",
+      "token_b": "ETH",
+      "amount_usd": 7845621,
+      "tx_hash": "0xabcd1234...ef5678",
+      "block_timestamp": "2023-07-30T14:12:45Z",
+      "remover": "0x1234...exploiter",
+      "is_suspicious": true,
+      "flags": ["large_withdrawal", "new_address", "rapid_execution"]
+    },
+    {
+      "event_type": "LiquidityRemoved",
+      "pool_address": "0x5b3c278e8f5b6eb56b8b9e2e0dcb3c44e9f3d2a1",
+      "pool_name": "msETH/ETH Curve Pool",
+      "token_a": "msETH",
+      "token_b": "ETH",
+      "amount_usd": 9234187,
+      "tx_hash": "0xdef5678...abc1234",
+      "block_timestamp": "2023-07-30T14:14:23Z",
+      "remover": "0x5678...exploiter",
+      "is_suspicious": true,
+      "flags": ["large_withdrawal", "contract_interaction", "flash_loan"]
+    },
+    {
+      "event_type": "LiquidityRemoved",
+      "pool_address": "0x3c4e5f8a9b2c1d0e3f4a5b6c7d8e9f0a1b2c3d4e",
+      "pool_name": "pETH/ETH Curve Pool",
+      "token_a": "pETH",
+      "token_b": "ETH",
+      "amount_usd": 6521943,
+      "tx_hash": "0x9876...5432abcd",
+      "block_timestamp": "2023-07-30T14:16:07Z",
+      "remover": "0x9abc...exploiter",
+      "is_suspicious": true,
+      "flags": ["large_withdrawal", "multiple_pools", "coordinated_attack"]
+    },
+    {
+      "event_type": "TokenTransfer",
+      "token": "CRV",
+      "from": "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b",
+      "to": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+      "amount": 52000000,
+      "amount_usd": 31200000,
+      "tx_hash": "0x1111...2222",
+      "block_timestamp": "2023-07-30T14:22:00Z",
+      "destination_label": "Binance Hot Wallet",
+      "flags": ["large_transfer", "cex_deposit", "potential_dump"]
+    }
+  ],
+  "summary": {
+    "total_liquidity_removed_usd": 23601751,
+    "affected_pools": 3,
+    "time_window_minutes": 10,
+    "exploit_confidence": 0.98,
+    "attack_pattern": "reentrancy_via_vyper_bug"
+  }
+}
+

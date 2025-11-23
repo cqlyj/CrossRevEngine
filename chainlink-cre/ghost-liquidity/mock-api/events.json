@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-11-22T16:30:00Z",
+  "events": [
+    {
+      "id": "evt_001",
+      "source": "governance",
+      "chain": "arbitrum",
+      "title": "Arbitrum DAO Proposal AIP-7 Passed",
+      "description": "Major governance proposal to increase sequencer fee revenue distribution approved with 89% support. Expected to boost ARB token utility.",
+      "sentiment": "bullish",
+      "impact": "high",
+      "tokens": ["ARB"],
+      "confidence": 0.92
+    },
+    {
+      "id": "evt_002",
+      "source": "protocol_upgrade",
+      "chain": "optimism",
+      "title": "Optimism Bedrock Upgrade Complete",
+      "description": "Successful deployment of Bedrock upgrade, reducing transaction fees by 40% and improving confirmation times.",
+      "sentiment": "bullish",
+      "impact": "medium",
+      "tokens": ["OP", "ETH"],
+      "confidence": 0.85
+    },
+    {
+      "id": "evt_003",
+      "source": "market_news",
+      "chain": "ethereum",
+      "title": "USDC Depegging Event Detected",
+      "description": "USDC trading at $0.95 on several exchanges following Circle banking concerns. Flight to safety expected.",
+      "sentiment": "bearish",
+      "impact": "critical",
+      "tokens": ["USDC", "USDT", "DAI"],
+      "confidence": 0.78
+    }
+  ],
+  "market_conditions": {
+    "volatility": "high",
+    "liquidity_depth": "medium",
+    "gas_prices": {
+      "ethereum": "45 gwei",
+      "arbitrum": "0.1 gwei",
+      "optimism": "0.05 gwei",
+      "base": "0.05 gwei"
+    }
+  }
+}
+
