@@ -16,7 +16,7 @@ async function main() {
     console.log('[Rescue] Rescuing to:', signer.address)
 
     const executor = await ethers.getContractAt('OAquaExecutor', executorAddress, signer)
-
+    
     // Check and rescue USDC
     const usdc = await ethers.getContractAt('IERC20', usdcAddress, signer)
     const usdcBalance = await usdc.balanceOf(executorAddress)
