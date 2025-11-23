@@ -14,7 +14,17 @@ async function main() {
         updateEnvFile('OAQUA_EXECUTOR_ADDRESS', executorAddress)
         updateEnvFile('OAQUA_EXECUTOR_ADDRESS_BASE', executorAddress)
     } else {
-        console.log('[Sync] Warning: No executor deployment found')
+        // Fallback: read from last_strategy.json
+        const strategyPath = path.join(__dirname, '../data/last_strategy.json')
+        if (fs.existsSync(strategyPath)) {
+            const strategy = JSON.parse(fs.readFileSync(strategyPath, 'utf8'))
+            const executorAddress = strategy.maker
+            console.log('[Sync] Executor (from strategy):', executorAddress)
+            updateEnvFile('OAQUA_EXECUTOR_ADDRESS', executorAddress)
+            updateEnvFile('OAQUA_EXECUTOR_ADDRESS_BASE', executorAddress)
+        } else {
+            console.log('[Sync] Warning: No executor deployment found')
+        }
     }
 
     // Read sender address
@@ -29,6 +39,18 @@ async function main() {
         console.log('[Sync] Warning: No sender deployment found')
     }
 
+    // Read swap executor address
+    const swapExecutorPath = path.join(__dirname, '../deployments/base-mainnet/OAquaSwapExecutor.json')
+    if (fs.existsSync(swapExecutorPath)) {
+        const swapExecutorDeployment = JSON.parse(fs.readFileSync(swapExecutorPath, 'utf8'))
+        const swapExecutorAddress = swapExecutorDeployment.address
+        console.log('[Sync] SwapExecutor:', swapExecutorAddress)
+        updateEnvFile('OAQUA_SWAP_EXECUTOR_ADDRESS', swapExecutorAddress)
+        updateEnvFile('OAQUA_SWAP_EXECUTOR_ADDRESS_BASE', swapExecutorAddress)
+    } else {
+        console.log('[Sync] Warning: No swap executor deployment found')
+    }
+
     console.log('[Sync] Done')
 }
 
@@ -36,4 +58,3 @@ main().catch((error) => {
     console.error('[Sync] Error:', error.message)
     process.exitCode = 1
 })
-
